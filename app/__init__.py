@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_humanize import Humanize
-import datetime
+import os
 
 # Flask extensions
 db = SQLAlchemy()
@@ -18,15 +18,17 @@ login.login_view = 'auth.login'
 
 def create_app(config_class=Config):
     app = Flask(__name__)
-    humanize = Humanize(app)
     app.config.from_object(config_class)
+    os.makedirs(app.config['STORAGE'], exist_ok=True)
     db.init_app(app)
+    humanize = Humanize(app)
     migrate.init_app(app, db)
     login.init_app(app)
     app.hashids = Hashids(
         alphabet=app.config['HASHIDS_ALPHABET'],
         min_length=app.config['HASHIDS_MIN_LEN'],
         salt=app.config['HASHIDS_SALT'])
+
 
     from app.auth import bp as auth_bp  # noqa: E402
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -40,7 +42,6 @@ def create_app(config_class=Config):
     from app.auth import uid_str
     app.add_template_global(name='uid_str', f=uid_str)
     app.add_template_global(name='humanize', f=humanize)
-    app.add_template_global(name='now', f=datetime.datetime.utcnow)
     app.add_template_global(name='hashids_encode', f=app.hashids.encode)
 
     return app

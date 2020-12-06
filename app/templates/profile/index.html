@@ -11,7 +11,7 @@
 <img src="{{ url_for('file.show', user_id_hash=hashids_encode(dbuserfile.user_id), file_id_hash=hashids_encode(dbuserfile.file_id)) }}" height=100 />
 {% endif %}
 <a href="{{ url_for('file.index_one', user_id_hash=hashids_encode(dbuserfile.user_id), file_id_hash=hashids_encode(dbuserfile.file_id)) }}">{{ dbuserfile.fname }}</a>
-{{ dbuserfile.ts|humanize('naturaltime', when=now()) }}
+{{ dbuserfile.ts|humanize() }}
 </li>
 {% endfor %}
 </ul>
