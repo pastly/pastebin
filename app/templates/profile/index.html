@@ -2,4 +2,15 @@
 
 {% block content %}
 <h1>{{ uid_str(user.uid) }}</h1>
+<ul>
+{% for dbuserfile in dbuserfiles %}
+<li>
+{% if probably_image(dbuserfile.fname) %}
+<img src="{{ url_for('file.show', user_id_hash=hashids_encode(dbuserfile.user_id), file_id_hash=hashids_encode(dbuserfile.file_id)) }}" height=100 />
+{% endif %}
+<a href="{{ url_for('file.index_one', user_id_hash=hashids_encode(dbuserfile.user_id), file_id_hash=hashids_encode(dbuserfile.file_id)) }}">{{ dbuserfile.fname }}</a>
+{{ dbuserfile.ts|humanize('naturaltime', when=now()) }}
+</li>
+{% endfor %}
+</ul>
 {% endblock %}

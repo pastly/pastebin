@@ -41,6 +41,7 @@ def create_app(config_class=Config):
     app.add_template_global(name='uid_str', f=uid_str)
     app.add_template_global(name='humanize', f=humanize)
     app.add_template_global(name='now', f=datetime.datetime.utcnow)
+    app.add_template_global(name='hashids_encode', f=app.hashids.encode)
 
     return app
 
