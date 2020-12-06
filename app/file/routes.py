@@ -109,6 +109,28 @@ def _upload(dbuser, form, is_anon):
     return render_template(
         'file/upload.html', form=form, title=title)
 
+@bp.route('/<user_id_hash>/<file_id_hash>/delete', methods=['GET'])
+@login_required
+def delete(user_id_hash, file_id_hash):
+    # Decode the IDs and return early if fake
+    user_id_int = idhash_to_id(user_id_hash)
+    file_id_int = idhash_to_id(file_id_hash)
+    if user_id_int is None or file_id_int is None:
+        abort(404)
+    # If user id is not current user, return early
+    if user_id_int != current_user.id:
+        abort(401)
+    dbuserfile = UserFile.query.filter_by(
+        user_id=user_id_int,
+        file_id=file_id_int).first()
+    if not dbuserfile:
+        abort(404)
+    db.session.delete(dbuserfile)
+    db.session.commit()
+    # XXX TODO check if anyone else has uploaded the file, and if not, delete
+    # it from disk and the File table.
+    return redirect(url_for('profile.index'))
+
 
 # Try to convert a hashids hash into the int it represetns. If we can't return
 # None. If it decodes to a tuple (because that's possible with hashids, but we
@@ -156,7 +178,10 @@ def index_one(user_id_hash, file_id_hash):
             user_id_hash=user_id_hash, file_id_hash=file_id_hash),
         plain_url=url_for(
             'file.plain',
-            user_id_hash=user_id_hash, file_id_hash=file_id_hash)
+            user_id_hash=user_id_hash, file_id_hash=file_id_hash),
+        delete_url=url_for(
+            'file.delete',
+            user_id_hash=user_id_hash, file_id_hash=file_id_hash),
     )
 
 # Helper for downloading/showing a file, as the operations are very similar.
