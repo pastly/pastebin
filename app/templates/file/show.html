@@ -7,5 +7,7 @@
 <a href="{{ show_url }}"><b>Show binary (.jpg, .pdf, ...)</b></a>
 <a href="{{ plain_url }}"><b>Show text (.txt, .py, ...)</b></a>
 <br />
+{% if current_user.id == userfile.user_id %}
 <a href="{{ delete_url }}"><i>Delete</i></a>
+{% endif %}
 {% endblock %}
