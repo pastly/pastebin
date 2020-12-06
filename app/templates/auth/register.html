@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="" method="post">
+        <h1>Register</h1>
+	<p>Authentication is done with a simple 16-digit ID number. Do not
+	forget your acount ID or you will lose your account forever.</p>
+        <a href="{{ url_for('auth.login') }}">Login to an existing account</a>
+	<p><input id="submit" name="submit" type="submit" value="Create new account"></p>
+    </form>
+{% endblock %}

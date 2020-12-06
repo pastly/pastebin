@@ -1,0 +1,41 @@
+<html>
+    <head>
+      {% if title %}
+      <title>{{ title }} - File Storage</title>
+      {% else %}
+      <title>File Storage</title>
+      {% endif %}
+      <meta name=viewport content="width=device-width, initial-scale=1">
+      <link href=/static/mvp.css rel=stylesheet>
+      {% block extra_css %} {% endblock %}
+    </head>
+    <body>
+    <header>
+      <nav>
+        <a href='{{ url_for('misc_routes.index') }}'><img alt="Logo" id=logo src="/static/logo.png" /></a>
+        <ul>
+            <li><a href="{{ url_for('misc_routes.index') }}">Home</a></li>
+            {% if current_user.is_anonymous %}
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            {% else %}
+            <li><a href="{{ url_for('profile.index') }}">Profile</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% endif %}
+        </ul>
+      </nav>
+    </header>
+    <main>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    <footer></footer>
+    </body>
+</html>
