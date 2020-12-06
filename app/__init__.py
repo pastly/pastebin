@@ -4,6 +4,8 @@ from hashids import Hashids
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_humanize import Humanize
+import datetime
 
 # Flask extensions
 db = SQLAlchemy()
@@ -16,6 +18,7 @@ login.login_view = 'auth.login'
 
 def create_app(config_class=Config):
     app = Flask(__name__)
+    humanize = Humanize(app)
     app.config.from_object(config_class)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -36,6 +39,8 @@ def create_app(config_class=Config):
 
     from app.auth import uid_str
     app.add_template_global(name='uid_str', f=uid_str)
+    app.add_template_global(name='humanize', f=humanize)
+    app.add_template_global(name='now', f=datetime.datetime.utcnow)
 
     return app
 
