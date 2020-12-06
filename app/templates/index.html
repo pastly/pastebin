@@ -4,5 +4,7 @@
 {% block content %}
 <article>
     <h1>Foo</h1>
+    <a href="{{ url_for('file.upload_anon') }}"><b>Upload anonymously</b></a>
+    <a href="{{ url_for('file.upload') }}"><b>Upload</b></a>
 </article>
 {% endblock %}

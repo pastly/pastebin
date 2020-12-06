@@ -1,5 +1,8 @@
 from flask import Blueprint
 import random
+from .. import db
+from ..models import User
+
 
 bp = Blueprint('auth', __name__)
 
@@ -15,5 +18,15 @@ def new_uid():
 def uid_str(uid: int) -> str:
     s = str(uid)
     return f'{s[:4]}-{s[4:8]}-{s[8:12]}-{s[12:]}'
+
+
+def anon_user():
+    u = User.query.filter_by(uid=MIN_UID).first()
+    if not u:
+        u = User(uid=MIN_UID)
+        db.session.add(u)
+        db.session.commit()
+    return User.query.filter_by(uid=MIN_UID).first()
+
 
 from . import routes, forms  # noqa: W0611

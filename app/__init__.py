@@ -1,5 +1,6 @@
 from flask import Flask
 from config import Config
+from hashids import Hashids
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -19,6 +20,10 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
+    app.hashids = Hashids(
+        alphabet=app.config['HASHIDS_ALPHABET'],
+        min_length=app.config['HASHIDS_MIN_LEN'],
+        salt=app.config['HASHIDS_SALT'])
 
     from app.auth import bp as auth_bp  # noqa: E402
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -26,6 +31,8 @@ def create_app(config_class=Config):
     app.register_blueprint(misc_routes_bp)
     from app.profile import bp as profile_bp  # noqa: E402
     app.register_blueprint(profile_bp, url_prefix='/profile')
+    from app.file import bp as file_bp  # noqa: E402
+    app.register_blueprint(file_bp, url_prefix='/file')
 
     from app.auth import uid_str
     app.add_template_global(name='uid_str', f=uid_str)

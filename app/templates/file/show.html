@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ userfile.fname }}</h1>
+<a href="{{ download_url}}"><b>Download</b></a>
+<a href="{{ show_url }}"><b>Show binary (.jpg, .pdf, ...)</b></a>
+<a href="{{ plain_url }}"><b>Show text (.txt, .py, ...)</b></a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<form action="" method="post" enctype="multipart/form-data">
+	{{ form.hidden_tag() }}
+        <p>
+            {{ form.f.label }}<br>
+            {{ form.f(size=32) }}
+            {% for error in form.f.errors %}
+            <span class=error>[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+{% endblock %}
