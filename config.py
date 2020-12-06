@@ -4,9 +4,9 @@ import os
 class Config:
     TESTING = True
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'WjwyV26ZncUY8dW1IWBJSnMP00r'
-    STORAGE = os.environ.get('STORAGE') or './files'
-    SQLALCHEMY_DATABASE_URI = \
-        'sqlite:///' + (os.environ.get('STORAGE') or 'files') + '/data.db'
+    STORAGE = os.environ.get('STORAGE')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/data.db'.format(
+        os.environ.get('STORAGE'))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
     HASHIDS_ALPHABET = os.environ.get('HASHIDS_ALPHABET') or 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'  # noqa: E501

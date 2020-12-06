@@ -80,9 +80,8 @@ def _upload(dbuser, form, is_anon):
                 user_id_hash=current_app.hashids.encode(dbuser.id),
                 file_id_hash=current_app.hashids.encode(existing_dbfile.id)))
         # This is a new file, so need to save it.
-        # XXX TODO location needs to be configurable or something,
-        # especially since its different in the download/showing function
-        fname = os.path.join('files', fname_part(the_hash))
+        fname = os.path.join(
+            current_app.config['STORAGE'], fname_part(the_hash))
         os.makedirs(os.path.dirname(fname), exist_ok=True)
         f.save(fname)
         # Add a File row.
@@ -210,9 +209,8 @@ def dl_or_show(user_id_hash, file_id_hash, as_attachment, as_plain):
         abort(404)
     dbuserfile, dbuser, dbfile = result
     # Path to file on disk.
-    # XXX TODO needs to be configurable or something. This is ugly, especially
-    # since it's different in the uploading function.
-    fname = os.path.join('..', 'files', fname_part(dbfile.hash))
+    fname = os.path.join(
+        current_app.config['STORAGE'], fname_part(dbfile.hash))
     return send_file(
         fname,
         mimetype='text/plain' if as_plain else None,
