@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<form action="" method="post" enctype="multipart/form-data">
+	{{ form.hidden_tag() }}
+        <p>
+            {{ form.fname.label }} (optional)<br>
+            {{ form.fname(size=32) }}
+            {% for error in form.fname.errors %}
+            <span class=error>[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.t.label }} (Up to 100,000 characters allowed)<br>
+            {{ form.t(cols=80, rows=24) }}
+            {% for error in form.t.errors %}
+            <span class=error>[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+{% endblock %}

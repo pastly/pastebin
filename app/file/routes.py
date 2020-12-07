@@ -2,13 +2,15 @@ from flask import render_template, request, redirect, url_for, abort,\
     current_app, send_file, flash
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from .forms import UploadForm
+from .forms import UploadForm, PasteForm
 from ..models import File, User, UserFile
 from . import bp
 from .. import db
 from ..auth import anon_user
+from tempfile import SpooledTemporaryFile
 import os
 import hashlib
+import random
 
 def hash_file(fd) -> str:
     fd.seek(0, 0)
@@ -24,6 +26,11 @@ def fname_part(the_hash: str) -> str:
         the_hash[0], the_hash[1], the_hash[2], the_hash[3], the_hash)
 
 
+def rand_paste_fname_part() -> str:
+    return 'paste-{}.txt'.format(current_app.hashids.encode(int.from_bytes(
+        random.randbytes(4), byteorder='big')))
+
+
 # Check if we have a row in the File table with the given hash. If so, return
 # it. Else return None
 def have_file(the_hash):
@@ -35,6 +42,56 @@ def have_file(the_hash):
 def have_userfile(dbuser, dbfile):
     return UserFile.query.filter_by(user_id=dbuser.id, file_id=dbfile.id)\
         .first()
+
+
+def store_file(dbuser, fd, user_fname, is_binary, is_anon):
+    the_hash = hash_file(fd)
+    # Check for an existing File row
+    existing_dbfile = have_file(the_hash)
+    if existing_dbfile:
+        # Someone already uploaded a file that hashes to this. See if it
+        # was the current user (where the current user could be
+        # the anonymous user)
+        existing_dbuserfile = have_userfile(dbuser, existing_dbfile)
+        if existing_dbuserfile:
+            # Yes it was the current user. Don't need to do anything.
+            you = 'Anonymous' if is_anon else 'You'
+            flash(f'{you} already uploaded/pasted that')
+        else:
+            # No it wasn't the current user. Add a UserFile row showing that
+            # this user also uploaded this file.
+            db.session.add(UserFile(
+                user_id=dbuser.id,
+                file_id=existing_dbfile.id,
+                fname=user_fname))
+            db.session.commit()
+        # Done and redirect to showing the page for this file.
+        return redirect(url_for(
+            'file.index_one',
+            user_id_hash=current_app.hashids.encode(dbuser.id),
+            file_id_hash=current_app.hashids.encode(existing_dbfile.id)))
+    # This is a new file, so need to save it.
+    fname = os.path.join(
+        current_app.config['STORAGE'], fname_part(the_hash))
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+    with open(fname, 'wb' if is_binary else 'wt') as fd_out:
+        fd_out.write(fd.read())
+    # Add a File row.
+    db.session.add(File(hash=the_hash))
+    db.session.commit()
+    # And a UserFile row.
+    dbfile = File.query.filter_by(hash=the_hash).first()
+    db.session.add(UserFile(
+        user_id=dbuser.id,
+        file_id=dbfile.id,
+        fname=user_fname))
+    db.session.commit()
+    # Done and redirect to the page for this file.
+    return redirect(url_for(
+        'file.index_one',
+        user_id_hash=current_app.hashids.encode(dbuser.id),
+        file_id_hash=current_app.hashids.encode(dbfile.id),
+    ))
 
 
 # Route for a signed-in user to upload a file non-anonymously
@@ -53,53 +110,8 @@ def upload_anon():
 # Actually do the file upload route GET or POST.
 def _upload(dbuser, form, is_anon):
     if form.validate_on_submit():
-        f = form.f.data
-        the_hash = hash_file(f.stream)
-        # Check for an existing File row
-        existing_dbfile = have_file(the_hash)
-        if existing_dbfile:
-            # Someone already uploaded a file that hashes to this. See if it
-            # was the current user (where the current user could be
-            # the anonymous user)
-            existing_dbuserfile = have_userfile(dbuser, existing_dbfile)
-            if existing_dbuserfile:
-                # Yes it was the current user. Don't need to do anything.
-                you = 'Anonymous' if is_anon else 'You'
-                flash(f'{you} already uploaded that file')
-            else:
-                # No it wasn't the current user. Add a UserFile row showing
-                # that this user also uploaded this file.
-                db.session.add(UserFile(
-                    user_id=dbuser.id,
-                    file_id=existing_dbfile.id,
-                    fname=f.filename))
-                db.session.commit()
-            # Done and redirect to showing the page for this file.
-            return redirect(url_for(
-                'file.index_one',
-                user_id_hash=current_app.hashids.encode(dbuser.id),
-                file_id_hash=current_app.hashids.encode(existing_dbfile.id)))
-        # This is a new file, so need to save it.
-        fname = os.path.join(
-            current_app.config['STORAGE'], fname_part(the_hash))
-        os.makedirs(os.path.dirname(fname), exist_ok=True)
-        f.save(fname)
-        # Add a File row.
-        db.session.add(File(hash=the_hash))
-        db.session.commit()
-        # And a UserFile row.
-        dbfile = File.query.filter_by(hash=the_hash).first()
-        db.session.add(UserFile(
-            user_id=dbuser.id,
-            file_id=dbfile.id,
-            fname=f.filename))
-        db.session.commit()
-        # Done and redirect to the page for this file.
-        return redirect(url_for(
-            'file.index_one',
-            user_id_hash=current_app.hashids.encode(dbuser.id),
-            file_id_hash=current_app.hashids.encode(dbfile.id),
-        ))
+        return store_file(
+            dbuser, form.f.data, form.f.data.filename, True, is_anon)
     # GET instead of POST. Show the form.
     if is_anon:
         title = 'Upload file anonymously'
@@ -107,6 +119,35 @@ def _upload(dbuser, form, is_anon):
         title = 'Upload file'
     return render_template(
         'file/upload.html', form=form, title=title)
+
+
+@bp.route('/paste', methods=['GET', 'POST'])
+@login_required
+def paste():
+    return _paste(current_user, PasteForm(), is_anon=False)
+
+
+@bp.route('/paste/anon', methods=['GET', 'POST'])
+def paste_anon():
+    return _paste(anon_user(), PasteForm(), is_anon=True)
+
+
+def _paste(dbuser, form, is_anon):
+    if form.validate_on_submit():
+        with SpooledTemporaryFile(max_size=10000, mode='wb') as fd:
+            fd.write(form.t.data.encode('utf-8'))
+            fd.seek(0, 0)
+            fname = form.fname.data if form.fname.data else \
+                rand_paste_fname_part()
+            return store_file(dbuser, fd, fname, True, is_anon)
+    # GET instead of POST. Show the form.
+    if is_anon:
+        title = 'Paste text anonymously'
+    else:
+        title = 'Paste text'
+    return render_template(
+        'file/paste.html', form=form, title=title)
+
 
 @bp.route('/<user_id_hash>/<file_id_hash>/delete', methods=['GET'])
 @login_required

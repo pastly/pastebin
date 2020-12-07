@@ -13,7 +13,10 @@ def probably_image(fname: str) -> bool:
 
 # Return list of UserFile objects that the given user has recently uploaded
 def recent_files(dbuser):
-    return UserFile.query.filter_by(user_id=dbuser.id).all()
+    return UserFile.query\
+        .filter_by(user_id=dbuser.id)\
+        .order_by(UserFile.ts.desc())\
+        .all()
 
 
 @bp.route('/', methods=['GET'])

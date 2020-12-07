@@ -2,8 +2,7 @@
 
 {% block content %}
 <h1>{{ uid_str(user.uid) }}</h1>
-    <a href="{{ url_for('file.upload_anon') }}"><b>Upload anonymously</b></a>
-    <a href="{{ url_for('file.upload') }}"><b>Upload</b></a>
+    {% include "buttons.html" %}
 <ul>
 {% for dbuserfile in dbuserfiles %}
 <li>
