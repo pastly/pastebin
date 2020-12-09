@@ -27,8 +27,8 @@ def fname_part(the_hash: str) -> str:
 
 
 def rand_paste_fname_part() -> str:
-    return 'paste-{}.txt'.format(current_app.hashids.encode(int.from_bytes(
-        random.randbytes(4), byteorder='big')))
+    return 'paste-{}.txt'.format(current_app.hashids.encode(
+        random.getrandbits(32)))
 
 
 # Check if we have a row in the File table with the given hash. If so, return
