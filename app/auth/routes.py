@@ -39,25 +39,3 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('misc_routes.index'))
-
-
-@bp.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('misc_routes.index'))
-    if request.method == 'POST':
-        uid = new_uid()
-        user = User(uid=uid)
-        db.session.add(user)
-        db.session.commit()
-        flash(f'Account ID {uid_str(uid)} created.')
-        user = User.query.filter_by(uid=uid).first()
-        login_user(user, remember=True)
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            # if no next GET param, or if it exists and is to a different
-            # hostname, then default to this page
-            next_page = url_for('profile.index')
-        return redirect(next_page)
-    return render_template(
-        'auth/register.html', title='Register')
