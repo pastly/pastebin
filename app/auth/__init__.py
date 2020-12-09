@@ -18,7 +18,8 @@ def new_uid():
 
 def uid_str(uid: int) -> str:
     s = str(uid)
-    return f'{s[:4]}-{s[4:8]}-{s[8:12]}-{s[12:]}'
+    return s
+    # return f'{s[:4]}-{s[4:8]}-{s[8:12]}-{s[12:]}'
 
 
 def anon_user():
