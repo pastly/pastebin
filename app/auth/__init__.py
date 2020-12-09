@@ -8,7 +8,7 @@ bp = Blueprint('auth', __name__)
 
 # all UIDs are 16 digit numbers
 MIN_UID = 1e15
-MAX_UID =  9999999999999999
+MAX_UID = 9999999999999999
 ANON_UID = 5973039346726582
 
 
