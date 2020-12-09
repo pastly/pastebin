@@ -13,3 +13,4 @@ class Config:
     HASHIDS_SALT = os.environ.get('HASHIDS_SALT') or '398742938645355498'
     HASHIDS_MIN_LEN = int(os.environ.get('HASHIDS_MIN_LEN') or 6)
     HUMANIZE_USE_UTC = True
+    ANON_UID = int(os.environ.get('ANON_UID') or 4684191711925202)

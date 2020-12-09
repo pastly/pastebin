@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, current_app
 import random
 from .. import db
 from ..models import User
@@ -9,7 +9,6 @@ bp = Blueprint('auth', __name__)
 # all UIDs are 16 digit numbers
 MIN_UID = 1e15
 MAX_UID = 9999999999999999
-ANON_UID = 5973039346726582
 
 
 def new_uid():
@@ -23,12 +22,16 @@ def uid_str(uid: int) -> str:
 
 
 def anon_user():
-    u = User.query.filter_by(uid=ANON_UID).first()
+    u = User.query.filter_by(uid=anon_uid()).first()
     if not u:
-        u = User(uid=ANON_UID)
+        u = User(uid=anon_uid())
         db.session.add(u)
         db.session.commit()
-    return User.query.filter_by(uid=ANON_UID).first()
+    return User.query.filter_by(uid=anon_uid()).first()
+
+
+def anon_uid():
+    return current_app.config['ANON_UID']
 
 
 from . import routes, forms  # noqa: W0611
