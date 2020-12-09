@@ -11,7 +11,6 @@
             <span class=error>[{{ error }}]</span>
             {% endfor %}
         </p>
-        <p>{{ form.submit() }}</p>
-    <p> New User? <a href="{{ url_for('auth.register') }}">Register</a></p>
+        <p>{{ form.submit() }} {{ form.register() }}</p>
     </form>
 {% endblock %}

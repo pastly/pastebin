@@ -13,7 +13,15 @@ def login():
         return redirect(url_for('profile.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(uid=form.uid.data).first()
+        if form.register.data:
+            uid = new_uid()
+            user = User(uid=uid)
+            db.session.add(user)
+            db.session.commit()
+            flash(f'Account ID {uid_str(uid)} created.')
+        else:
+            uid = form.uid.data
+            user = User.query.filter_by(uid=form.uid.data).first()
         if user is None:
             flash('Invalid account ID')
             return redirect(url_for('auth.login'))
