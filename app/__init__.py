@@ -29,7 +29,6 @@ def create_app(config_class=Config):
         min_length=app.config['HASHIDS_MIN_LEN'],
         salt=app.config['HASHIDS_SALT'])
 
-
     from app.auth import bp as auth_bp  # noqa: E402
     app.register_blueprint(auth_bp, url_prefix='/auth')
     from app.misc_routes import bp as misc_routes_bp  # noqa: E402
